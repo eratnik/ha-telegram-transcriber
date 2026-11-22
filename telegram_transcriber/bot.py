@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 from pathlib import Path
 import socket
 import subprocess
@@ -154,7 +155,11 @@ def main():
     CONFIG = json.loads(OPTIONS.read_text())
     if not CONFIG.get("bot_token") or not CONFIG.get("allowed_user_ids"):
         raise SystemExit("Заполните bot_token и allowed_user_ids в настройках приложения.")
-    API = "https://api.telegram.org/bot" + CONFIG["bot_token"] + "/"
+    token = str(CONFIG["bot_token"]).strip()
+    if not re.fullmatch(r"[0-9]+:[A-Za-z0-9_-]+", token):
+        raise SystemExit("Некорректный bot_token: вставьте только токен BotFather без кавычек, URL, пробелов и переносов.")
+    CONFIG["bot_token"] = token
+    API = "https://api.telegram.org/bot" + token + "/"
     # Polling belongs exclusively to this dedicated bot.
     offset = int(OFFSET_FILE.read_text()) if OFFSET_FILE.exists() else 0
     LOG.info("Telegram Transcriber started; audio and tokens are not logged.")
