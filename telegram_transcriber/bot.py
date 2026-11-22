@@ -109,9 +109,12 @@ def transcribe(pcm_path):
 
 def handle(message):
     if message.get("from", {}).get("id") not in CONFIG["allowed_user_ids"]:
+        LOG.warning("Message ignored: sender ID %s is absent from allowed_user_ids", message.get("from", {}).get("id"))
         return
     if message.get("chat", {}).get("type") != "private":
+        LOG.warning("Message ignored: use a private chat with the bot")
         return
+    LOG.info("Authorized message received; checking audio")
     audio = message.get("voice") or message.get("audio")
     if not audio:
         reply(message, "Перешлите голосовое сообщение или аудио до "
@@ -163,8 +166,13 @@ def main():
     # Polling belongs exclusively to this dedicated bot.
     offset = int(OFFSET_FILE.read_text()) if OFFSET_FILE.exists() else 0
     LOG.info("Telegram Transcriber started; audio and tokens are not logged.")
+    identity_logged = False
     while True:
         try:
+            if not identity_logged:
+                identity = telegram("getMe")
+                LOG.info("Connected bot: @%s", identity.get("username", "unknown"))
+                identity_logged = True
             updates = telegram("getUpdates", {
                 "offset": offset, "timeout": 30, "limit": 10,
                 "allowed_updates": ["message"],
