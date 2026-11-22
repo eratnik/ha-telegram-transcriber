@@ -1,5 +1,5 @@
 name: Telegram Transcriber
-version: "1.0.0"
+version: "1.0.1"
 slug: telegram_transcriber
 description: "Локальная расшифровка голосовых Telegram через Whisper"
 url: https://github.com/eratnik/ha-telegram-transcriber
